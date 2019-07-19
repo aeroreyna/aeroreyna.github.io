@@ -1,0 +1,87 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="index, follow"><title>Using DOI tags as References with Pandoc • AeroReyna</title><meta name="description" content="Using DOI tags as References with Pandoc - Adolfo Reyna-Orta"><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="https://unpkg.com/nanoreset@3.0.1/nanoreset.min.css"><link rel="search" type="application/opensearchdescription+xml" href="/atom.xml" title="AeroReyna"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.8/styles/vs.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+<link href="https://fonts.googleapis.com/css?family=Hind+Guntur:300,500|Montserrat&display=swap" rel="stylesheet"><link rel="stylesheet" href="/css/theme.css"><script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script></head><body><div class="container"><div class="columns"><div class="column is-one-quarter"><h1 class="title"><a class="image" href="/" title="AeroReyna"><img class="logo-image is-rounded" src="/perfil.jpg" alt="logo"></a></h1><ul class="nav nav-list"><li class="nav-list-item"><a class="nav-list-link no-barba" href="/" target="_self">HOME</a></li><li class="nav-list-item"><a class="nav-list-link no-barba" href="/about-me" target="_self">ABOUT</a></li><li class="nav-list-item"><a class="nav-list-link no-barba" href="https://github.com/aeroreyna" target="_blank">GITHUB</a></li><li class="nav-list-item"><a class="nav-list-link no-barba" href="https://twitter.com/aeroreyna" target="_blank">TWITTER</a></li><li class="nav-list-item"><a class="nav-list-link no-barba" href="/atom.xml" target="_self">RSS</a></li></ul></div><div class="column"><!--added.containerp This goes in all pages--><main class="section"><div class="post"><article class="post-block"><h1 class="post-title">Using DOI tags as References with Pandoc</h1><div class="post-info"><a></a>2019-07-01</div><div class="post-content"><p>Pandoc is a powerful text conversion tool that allows to write scientific documents completely in Markdown, and to be transform in properly formatted pdfs, web document, Latex or even Docx files. With the use of filters, pandoc is able to extend the Markdown capabilities to reference in text previously published works, and to make use of figure, equations, table, etc. numbering and inside references as well.</p>
+<p>I personally have found two filters very useful: Pandoc-citeproc and Pandoc-crossref. Citeproc is a filter that looks for references in the text with the form @referencetag and format them with the indicated style (like APA or IEEE) in text and in the reference block at the end of the document. In the other hand, the crossref filter give us a proper way of inserting equations, figures, tables and listings (code blocks), in such ways that they're automatically and properly numbered and referenced through custom tags.</p>
+<p>Pandoc-citeproc requires to be pointed to a biblatex<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> file which contains the information of the works cited, and optionally a csl file that determines the reference style used. These both can be indicated directly in the Markdown file using the YAML block in the beginning of the document as follows:</p>
+<pre class="markdonw"><code>paper.md
+
+---
+title: Pandoc doi2bib filter
+bibliography: library.bib
+csl: csl/apa.csl
+---
+
+The author of [@Fausto2019] has mentioned this issue before.
+
+# Refereces:
+</code></pre>
+<p>and the .bib file should contain the information of the reference such as:</p>
+<pre class="biblatex"><code>@article{@Fausto2019,
+    doi = {10.1007/s10462-018-09676-2},
+    url = {https://doi.org/10.1007%2Fs10462-018-09676-2},
+    year = 2019,
+    month = {jan},
+    publisher = {Springer Nature},
+    author = {Fernando Fausto and Adolfo Reyna-Orta and Erik Cuevas and {\&#39;{A}}ngel G. Andrade and Marco Perez-Cisneros},
+    title = {From ants to whales: metaheuristics for all tastes},
+    journal = {Artificial Intelligence Review}
+}</code></pre>
+<p>Then the command <code>pandoc -s paper.md --filter pandoc-citeproc -t html</code> return the converted text from markdown to html with the references included:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">&lt;!--Partial Result:--&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">&lt;body&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="kw">&lt;header</span><span class="ot"> id=</span><span class="st">&quot;title-block-header&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="kw">&lt;h1</span><span class="ot"> class=</span><span class="st">&quot;title&quot;</span><span class="kw">&gt;</span>Pandoc doi2bib filter<span class="kw">&lt;/h1&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="kw">&lt;p</span><span class="ot"> class=</span><span class="st">&quot;date&quot;</span><span class="kw">&gt;</span>2019-07-01 10:35:49<span class="kw">&lt;/p&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="kw">&lt;/header&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="kw">&lt;p&gt;</span>The author of <span class="kw">&lt;span</span><span class="ot"> class=</span><span class="st">&quot;citation&quot;</span><span class="ot"> data-cites=</span><span class="st">&quot;Fausto2019&quot;</span><span class="kw">&gt;</span>(Fausto et al. 2019)<span class="kw">&lt;/span&gt;</span> has mentioned this issue before.<span class="kw">&lt;/p&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="kw">&lt;h1</span><span class="ot"> id=</span><span class="st">&quot;refereces&quot;</span><span class="ot"> class=</span><span class="st">&quot;unnumbered&quot;</span><span class="kw">&gt;</span>Refereces:<span class="kw">&lt;/h1&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="kw">&lt;div</span><span class="ot"> id=</span><span class="st">&quot;refs&quot;</span><span class="ot"> class=</span><span class="st">&quot;references&quot;</span><span class="ot"> role=</span><span class="st">&quot;doc-bibliography&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a><span class="kw">&lt;div</span><span class="ot"> id=</span><span class="st">&quot;ref-Fausto2019&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="kw">&lt;p&gt;</span>Fausto, Fernando, Adolfo Reyna-Orta, Erik Cuevas, Ángel G. Andrade, and Marco Perez-Cisneros. 2019. ÔÇ£From Ants to Whales: Metaheuristics for All Tastes.ÔÇØ <span class="kw">&lt;em&gt;</span>Artificial Intelligence Review<span class="kw">&lt;/em&gt;</span>, January. Springer Nature. <span class="kw">&lt;a</span><span class="ot"> href=</span><span class="st">&quot;https://doi.org/10.1007/s10462-018-09676-2&quot;</span><span class="kw">&gt;</span>https://doi.org/10.1007/s10462-018-09676-2<span class="kw">&lt;/a&gt;</span>.<span class="kw">&lt;/p&gt;</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="kw">&lt;/div&gt;</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a><span class="kw">&lt;/div&gt;</span></span>
+<span id="cb3-14"><a href="#cb3-14"></a><span class="kw">&lt;/body&gt;</span></span></code></pre></div>
+<p>In this way, it is fairly simple to write and manage the document and presented in the required format for collages to collaborate or to be submitted for publication (most likely in Latex).</p>
+<p>However, with this framework the creation and maintaining of the references file (.bib) and the referring tags of the cited works is left to be done manually or by third parties, such as reference managers like Zotero or Mendeley.</p>
+<p>Due to the fact that most recent publications make use of the digital object identifier (DOI)<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>, it is possible to use this index as the citation tag in our documents. By doing so, it is warranted that all citations reference to a unique document, different to usual tags on which an author could potentially have several publications for each year. This also open the window for further automatization, as there is reliable web services that offers the citation information of any given DOI, such as <a href>https://dx.doi.org/</a>.</p>
+<p>This concept give birth to a new pandoc filter called <a href="https://github.com/aeroreyna/pandoc-doi2bib" target="_blank" rel="noopener">doi2bib</a>. This filter make use of specified bibliography file (only .bib) in the YAML configuration, it search for all references with the format @DOI:XXX.XXXand updates the this file accordingly. This means that any new reference is automatically added using the reliable information offered in the correct format by <em>doi.org</em>.</p>
+<p>This tool offers the following benefits:</p>
+<ul>
+<li><p>The specified file can be an empty file, previously existed .bib filed or not existent.</p></li>
+<li><p>Only newly references required to be downloaded, therefore it does not add significantly time of compilation.</p></li>
+<li><p>Several document can share this .bib file, or use a global one for all your documents.</p></li>
+<li><p>If all your reference uses this format, a new file with only the current citations in order of citation can be generated simply by changing the specified bibliography file in the document.</p></li>
+</ul>
+<p>To make use of this filter, just download the last build from the <a href="https://github.com/aeroreyna/pandoc-doi2bib" target="_blank" rel="noopener">Github</a> and paste it in the same Path of your pandoc executable. Then this can be implemented using the command <code>pandoc -s paper.md --filter pandoc-doi2bib --filter pandoc-citeproc -o paper.pdf</code></p>
+<pre class="markdonw"><code>paper.md
+
+---
+title: Pandoc doi2bib filter
+bibliography: library.bib
+csl: csl/apa.csl
+---
+
+The author of [@DOI:10.1007/s10462-018-09676-2] has mentioned this issue before.
+
+# Refereces:
+</code></pre>
+<p>which results in:</p>
+<p><img src="https://thepracticaldev.s3.amazonaws.com/i/otd6iy7ftb5dkr0sjdaj.png"></p>
+<p>I´m using this framework for my thesis and prospect publications, so I hope it might helps others as well.</p>
+<section class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1" role="doc-endnote"><p>Others file types like bibtex, json, or yaml can be used as well.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>Digital object identifier (DOI) is a persistent identifier or handle used to identify objects uniquely, standardized by the International Organization for Standardization (ISO). <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" target="_blank" rel="noopener">Wikipedia</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+</div></article></div></main><footer><div class="paginator"><a class="next" href="/2019/06/30/Writing-Scientific-Papers-with-Markdown-in-2019/">next</a></div><div class="copyright"><p>Powered by <a href="https://hexo.io/" rel="noreferrer" target="_blank">Hexo</a></p></div></footer></div></div></div><script>var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+_gaq.push(['_trackPageview']);
+
+(function () {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();</script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.8/highlight.min.js"></script><script>(function () {
+    hljs.initHighlightingOnLoad();
+})();</script></body></html>

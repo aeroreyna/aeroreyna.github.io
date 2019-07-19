@@ -1,0 +1,109 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="index, follow"><title>Efficient Ultra-Dense Network Capacity Simulations • AeroReyna</title><meta name="description" content="Efficient Ultra-Dense Network Capacity Simulations - Adolfo Reyna-Orta"><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="https://unpkg.com/nanoreset@3.0.1/nanoreset.min.css"><link rel="search" type="application/opensearchdescription+xml" href="/atom.xml" title="AeroReyna"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.8/styles/vs.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+<link href="https://fonts.googleapis.com/css?family=Hind+Guntur:300,500|Montserrat&display=swap" rel="stylesheet"><link rel="stylesheet" href="/css/theme.css"><script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script></head><body><div class="container"><div class="columns"><div class="column is-one-quarter"><h1 class="title"><a class="image" href="/" title="AeroReyna"><img class="logo-image is-rounded" src="/perfil.jpg" alt="logo"></a></h1><ul class="nav nav-list"><li class="nav-list-item"><a class="nav-list-link no-barba" href="/" target="_self">HOME</a></li><li class="nav-list-item"><a class="nav-list-link no-barba" href="/about-me" target="_self">ABOUT</a></li><li class="nav-list-item"><a class="nav-list-link no-barba" href="https://github.com/aeroreyna" target="_blank">GITHUB</a></li><li class="nav-list-item"><a class="nav-list-link no-barba" href="https://twitter.com/aeroreyna" target="_blank">TWITTER</a></li><li class="nav-list-item"><a class="nav-list-link no-barba" href="/atom.xml" target="_self">RSS</a></li></ul></div><div class="column"><!--added.containerp This goes in all pages--><main class="section"><div class="post"><article class="post-block"><h1 class="post-title">Efficient Ultra-Dense Network Capacity Simulations</h1><div class="post-info"><a></a>2019-06-28</div><div class="post-content"><h1 id="introduction">Introduction</h1>
+<p>The computation of the network capacity requires the calculation of each link between cells (<span class="math inline">\(Q\)</span>) and users (<span class="math inline">\(U\)</span>) over the channels (<span class="math inline">\(N\)</span>), determined by the Channel Allocation (CA) matrix <span class="math inline">\(X_{Q,U,N}\)</span>, considering the allocated power <span class="math inline">\(P_{Q,N}\)</span> over each channel. This function is non-linear due to the calculation of interference, as can be observed in the SNIR (Eq. 1), which represent the sum of all the received signals produced by cells sharing the channel.</p>
+<p><span id="eq:NetworkCapacity"><span class="math display">\[
+C^{Network}(X_{Q,U,N}, P_{Q,N}) = \sum_{q=1}^Q{
+  \sum_{u=1}^{U}{
+    \sum_{n=1}^{N}{
+      \frac{B}{N}log_2(1 + \underbrace{
+        \frac{
+          X_{q,u,n} \overbrace{P_{q,n} H(q,u,n)}^\text{DessiredSingal}
+        }{N_0 + I(q,u,n)}
+      }_\text{SNIR})
+    }
+  }
+}
+\qquad(1)\]</span></span></p>
+<p>A straight forward strategy could be coded as:</p>
+<div id="lst:alg1" class="listing matlab">
+<p>Listing 1: Straight forward calculation of the capacity of the network.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode matlab"><code class="sourceCode matlab"><span id="cb1-1"><a href="#cb1-1"></a>C = zeros(U,<span class="fl">1</span>);</span>
+<span id="cb1-2"><a href="#cb1-2"></a>for q=<span class="fl">1</span>:Q</span>
+<span id="cb1-3"><a href="#cb1-3"></a>  for u=<span class="fl">1</span>:U</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    for n=<span class="fl">1</span>:N</span>
+<span id="cb1-5"><a href="#cb1-5"></a>      if(X(q,u,n)) <span class="co">%if is allocated</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>        DessiredSingal = P(q,n) * H(q,u,n);</span>
+<span id="cb1-7"><a href="#cb1-7"></a>        Interferece = <span class="fl">0</span>;</span>
+<span id="cb1-8"><a href="#cb1-8"></a>        for q2=<span class="fl">1</span>:Q</span>
+<span id="cb1-9"><a href="#cb1-9"></a>          for u2=<span class="fl">1</span>:U</span>
+<span id="cb1-10"><a href="#cb1-10"></a>            if(X(q2,u2,n))</span>
+<span id="cb1-11"><a href="#cb1-11"></a>              Interferece = Interferece + P(q2,n) * H(q2,u2,n);</span>
+<span id="cb1-12"><a href="#cb1-12"></a>            end</span>
+<span id="cb1-13"><a href="#cb1-13"></a>          end</span>
+<span id="cb1-14"><a href="#cb1-14"></a>        end</span>
+<span id="cb1-15"><a href="#cb1-15"></a>        <span class="co">% add to the user capacity</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a>        C(u) = C(u) + B/N *...</span>
+<span id="cb1-17"><a href="#cb1-17"></a>               log2(<span class="fl">1</span> + DessiredSingal / (Noise + Interferece));</span>
+<span id="cb1-18"><a href="#cb1-18"></a>      end</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    end</span>
+<span id="cb1-20"><a href="#cb1-20"></a>  end</span>
+<span id="cb1-21"><a href="#cb1-21"></a>end</span></code></pre></div>
+</div>
+<p>The procedure in Alg. 1 has a complexity of <span class="math inline">\(\mathcal{O}(Q^2U^2N * \mathcal{O}(H(q,u,n)))\)</span><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> received power calculations in the worst scenario, <span class="math inline">\(X(q,u,n)=1 \;\forall\; q,u,n\)</span>. However, this worst scenario is unrealistic as users are usually attended only by a single cell, and each cell can use once each channel between its users at any time. Therefore, worst case is represent by those allocations on which the cells make use of all channels among their users (Reuse 1), resulting on <span class="math inline">\(\mathcal{O}(Q^2N*\mathcal{O}(P_{q,n} * H(q,u,n)))\)</span>. Such allocations are usually used on works that evaluated the performance of Ultra-Dense Networks (UDNs), such as <span class="citation" data-cites="DOI:10.1109/jsac.2017.2687638">Nguyen and Kountouris (<a href="#ref-DOI:10.1109/jsac.2017.2687638" role="doc-biblioref">2017</a>)</span> and <span class="citation" data-cites="DOI:10.1109/camad.2015.7390494">Romanous et al. (<a href="#ref-DOI:10.1109/camad.2015.7390494" role="doc-biblioref">2015</a>)</span>. This means that the evaluation of the network complicates with the network densification exponentially, increasing the delay of solving RA. Also the complexity of calculating the channel gain <span class="math inline">\(H(q,u,n)\)</span> depends on the channel model, which requires a square root calculation for the Path Loss and generating one or several random number for Shadowing and Multi-Trajectory Losses. For this reason, it is necessary to implement efficient methods for this calculations.</p>
+<p>In this case is convenient to pre-calculate the channel gains <span class="math inline">\(H_{q,u,n} = H(q,u,n)\)</span>. This is due to the calculation of a square root requires several basic operations, these gains can be considered fixed over the time on which RA is executed [REFs] and the worst case scenario is highly probable in most implementations of RA algorithms over UDNs. The distance between cells and users (<span class="math inline">\(D_{q,u}\)</span>) is performed and multiplied by the channel random gains of each channel, . As <span class="math inline">\(H_{q,u,n}\)</span> remains fix through the RA process, this is calculated only once and reused over all the rest allocation evaluations, thus the <span class="math inline">\(\mathcal{O}(QU*\mathcal{O}(\sqrt{D_{q,n}}) + UN)\)</span> complexity of this calculation is removed. Given <span class="math inline">\(H_{q,u,n}\)</span>, it is possible to calculate the user signal perceived from all cells as <span class="math inline">\(S_{q,u,n} = P_{q,n} * H_{q,u,n}\)</span>. Consequently, the remained complexity is <span class="math inline">\(\mathcal{O}(Q^2N + QN)\)</span> which represent the complexity of CA and PA respectively.</p>
+<p>One significant improvement for the computer efficiency can be obtained by the vectorization<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> of Alg. 1 as MATLAB® is optimized for operations involving matrices and vectors (similarly to other Programming Languages like Python with Numpy), and it allows the use of parallel GPU computations easily. Making this change in implementation do not affect the calculation computer complexity, but it positively affects the execution time due to the compilation optimizations of the software.</p>
+<div id="lst:alg2" class="listing matlab">
+<p>Listing 2: Vectorized calculation of the capacity of the network.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode matlab"><code class="sourceCode matlab"><span id="cb2-1"><a href="#cb2-1"></a>C = zeros(U, <span class="fl">1</span>);</span>
+<span id="cb2-2"><a href="#cb2-2"></a>for n=<span class="fl">1</span>:N</span>
+<span id="cb2-3"><a href="#cb2-3"></a>  usersInx = X(:,n) ~= <span class="fl">1</span>; <span class="co">%list of users using channel n</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>  cellsInx = A(usersInx); <span class="co">%cells attending these users</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a>  signalsRx      = S(cellsInx, usersInx, n); <span class="co">%max size of QxQ</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a>  DessiredSingal = signalsRx * eye(size(signalsRx)); <span class="co">%Diagonal</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>  Interference   = sum(signalsRx, <span class="fl">2</span>) - DessiredSingal;</span>
+<span id="cb2-8"><a href="#cb2-8"></a>  C(usersInx)    = C(usersInx) + B/N *...</span>
+<span id="cb2-9"><a href="#cb2-9"></a>                   log2(<span class="fl">1</span> + dessiredS / (Noise + Interference));</span>
+<span id="cb2-10"><a href="#cb2-10"></a>end</span></code></pre></div>
+</div>
+<p>To simplify this implementation the Channel Allocation matrix is divided on a smaller channel allocation between users and channels <span class="math inline">\(X_{u,n}\)</span>, and a separated variable <span class="math inline">\(A_u\)</span> contains the cell associated to each user. This setup is usually used due to association is performed in a separated pre-processing before RA, if required. Then, as shown in Algorithm 2 a square matrix of received signal between the users and cells sharing the channel can be obtained. The diagonal of the <span class="math inline">\(signalsRx\)</span> matrix represent the desired signals and the rest determined the interference perceived. Further vectorization can be implemented, to calculate the capacity or all the channels, but this requires complicated highly dimensional matrix transformations and memory space, which limits its implementation as shown in Appendix #.</p>
+<h1 id="block-allocation-proposal">Block Allocation Proposal</h1>
+<p>The proposed block allocation of this work [SELF_REF] allows to further reduce the complexity of the evaluation of the network capacity. The proposal considers CA y PA as two consecutive sub-problems to solve RA, which is well-known strategy in these works [REFs]. To solve CA, the power of each cell is allocated flat over the channels, i.e., <span class="math inline">\(P(q,n) = P_q/N \;\forall\; q, n\)</span>. This simplification added to the use of Path Loss as the only fading factor in the channel model make it is possible to storage the perceived signal of the users from all cells as <span class="math inline">\(S_{q,u} = P_q/N * H_{q,u,n}\)</span>.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> Therefore, the PA part of the complexity is eliminated resulting in <span class="math inline">\(\mathcal{O}(Q^2N)\)</span>.</p>
+<p>Furthermore, the exclusive use of Path Loss in the channel model, considers a flat behavior of the channels gains. This means that the same capacity is achieved over any channel with an identical configuration of users sharing it, which incentives to recollect all possible configurations capacities. However, this strategy is unpractical as it requires <span class="math inline">\(2^U\)</span> computations and space in memory. Nevertheless, due to the block allocation scheme proposed in this work, it is highly probable that multiple adjacent channels are share by the same configuration of users. Therefore, the last configuration of channels and capacity can be recorded, to compare with the consecutive channels and skip those calculations, which lead to the worst case complexity <span class="math inline">\(\mathcal{O}(Q^2log(N))\)</span>. This implementation is exposed in Algorithm 3 and used for the network simulations on this work.</p>
+<div id="lst:alg3" class="listing matlab">
+<p>Listing 3: Vectorized calculation of the capacity of the network.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode matlab"><code class="sourceCode matlab"><span id="cb3-1"><a href="#cb3-1"></a>C = zeros(U,<span class="fl">1</span>);</span>
+<span id="cb3-2"><a href="#cb3-2"></a>lastUI = [];</span>
+<span id="cb3-3"><a href="#cb3-3"></a>lastUC = [];</span>
+<span id="cb3-4"><a href="#cb3-4"></a>for n=<span class="fl">1</span>:N</span>
+<span id="cb3-5"><a href="#cb3-5"></a>  usersInx = X(:,n) ~= <span class="fl">1</span>; <span class="co">%list of users using channel n</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a>  if(n &gt; <span class="fl">1</span> &amp;&amp; all(lastUI==usersInx))</span>
+<span id="cb3-7"><a href="#cb3-7"></a>    tempC = lastUC;</span>
+<span id="cb3-8"><a href="#cb3-8"></a>  else</span>
+<span id="cb3-9"><a href="#cb3-9"></a>    cellsInx = A(usersInx); <span class="co">%cells attending these users</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a>    signalsRx = S(cellsInx, usersInx); <span class="co">%max size of QxQ</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a>    DessiredSingal = signalsRx * eye(size(signalsRx)); <span class="co">%Diagonal</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a>    Interference   = sum(signalsRx, <span class="fl">2</span>) - DessiredSingal;</span>
+<span id="cb3-13"><a href="#cb3-13"></a>    tempC = B/N *log2(<span class="fl">1</span> + dessiredS / (Noise + Interference));</span>
+<span id="cb3-14"><a href="#cb3-14"></a>  end</span>
+<span id="cb3-15"><a href="#cb3-15"></a>  C(usersInx) = C(usersInx) + tempC</span>
+<span id="cb3-16"><a href="#cb3-16"></a>  usersInx = usersInx;</span>
+<span id="cb3-17"><a href="#cb3-17"></a>  lastUC = tempC;</span>
+<span id="cb3-18"><a href="#cb3-18"></a>end</span></code></pre></div>
+</div>
+<div id="refs" class="references" role="doc-bibliography">
+<div id="ref-DOI:10.1109/jsac.2017.2687638">
+<p>Nguyen, Van Minh, and Marios Kountouris. 2017. “Performance Limits of Network Densification.” <em>IEEE Journal on Selected Areas in Communications</em> 35 (6). Institute of Electrical; Electronics Engineers (IEEE): 1294–1308. <a href="https://doi.org/10.1109/jsac.2017.2687638" target="_blank" rel="noopener">https://doi.org/10.1109/jsac.2017.2687638</a>.</p>
+</div>
+<div id="ref-DOI:10.1109/camad.2015.7390494">
+<p>Romanous, Bashar, Naim Bitar, Ali Imran, and Hazem Refai. 2015. “Network Densification: Challenges and Opportunities in Enabling 5G.” In <em>2015 IEEE 20th International Workshop on Computer Aided Modelling and Design of Communication Links and Networks (CAMAD)</em>. IEEE. <a href="https://doi.org/10.1109/camad.2015.7390494" target="_blank" rel="noopener">https://doi.org/10.1109/camad.2015.7390494</a>.</p>
+</div>
+</div>
+<section class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1" role="doc-endnote"><p>This complexity refers to the evaluation of network capacity, not the complexity of solving RA.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>The process of revising loop-based, scalar-oriented code to use MATLAB matrix and vector operations is called vectorization. Vectorizing your code is worthwhile for several reasons: Appearance, Less Error Prone and Performance <a href>https://www.mathworks.com/help/matlab/matlab_prog/vectorization.html</a>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>This calculation is performed to associated users with the cell that offers the highest SNR using the Path Loss Association. So these results can be carried from such stage.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+</div></article></div></main><footer><div class="paginator"><a class="prev" href="/2019/06/30/Writing-Scientific-Papers-with-Markdown-in-2019/">prev</a><a class="next" href="/2019/06/20/Algorithmic-Trading-with-Matlab/">next</a></div><div class="copyright"><p>Powered by <a href="https://hexo.io/" rel="noreferrer" target="_blank">Hexo</a></p></div></footer></div></div></div><script>var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+_gaq.push(['_trackPageview']);
+
+(function () {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();</script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.8/highlight.min.js"></script><script>(function () {
+    hljs.initHighlightingOnLoad();
+})();</script></body></html>

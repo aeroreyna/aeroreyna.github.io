@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://yoursite.com/about-me/index.html</loc>
+    
+    <lastmod>2019-07-19T00:30:53.133Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2019/07/01/Pandoc-doi2bib-filter/</loc>
+    
+    <lastmod>2019-07-19T00:14:31.490Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2019/06/28/Efficient-Network-Capacity-Simulations/</loc>
+    
+    <lastmod>2019-07-01T20:34:09.206Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2019/06/30/Writing-Scientific-Papers-with-Markdown-in-2019/</loc>
+    
+    <lastmod>2019-07-01T15:27:19.544Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/2019/06/20/Algorithmic-Trading-with-Matlab/</loc>
+    
+    <lastmod>2019-06-28T13:54:37.390Z</lastmod>
+    
+  </url>
+  
+</urlset>
